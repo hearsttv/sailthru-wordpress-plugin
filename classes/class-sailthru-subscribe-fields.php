@@ -268,30 +268,17 @@ class Sailthru_Subscribe_Fields {
 		$post_title                     = get_the_title();
 		$horizon_tags['sailthru.title'] = esc_attr( $post_title );
 
-		// tags in the order of priority
-		// first sailthru tags
-		$post_tags = get_post_meta( $post_object->ID, 'sailthru_meta_tags', true );
+		// tags
+		$post_categories = get_the_category( $post_object->ID );
+		$post_tags = array_map( function( $category ) {
+			return $category->name;
+		}, $post_categories );
 
-		// WordPress tags
-		if ( empty( $post_tags ) ) {
-			$post_tags = get_the_tags();
-			if ( $post_tags ) {
-				$post_tags = esc_attr( implode( ', ', wp_list_pluck( $post_tags, 'name' ) ) );
-			}
-		}
+		// add site id to tags
+		$site_metadata = get_option( 'vl_metadata' );
+		$post_tags[] = $site_metadata['site_id'];
 
-		// WordPress categories
-		if ( empty( $post_tags ) ) {
-			$post_categories = get_the_category( $post_object->ID );
-			foreach ( $post_categories as $post_category ) {
-				$post_tags .= $post_category->name . ', ';
-			}
-			$post_tags = substr( $post_tags, 0, -2 );
-		}
-
-		if ( ! empty( $post_tags ) ) {
-			$horizon_tags['sailthru.tags'] = $post_tags;
-		}
+		$horizon_tags['sailthru.tags'] = join( ', ', $post_tags );;
 
 		// author << works on display name. best option?
 		$post_author = get_the_author();
