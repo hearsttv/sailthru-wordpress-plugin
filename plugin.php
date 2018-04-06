@@ -1,41 +1,40 @@
 <?php
 /**
-Plugin Name: Sailthru for WordPress (HTV)
-Plugin URI: http://sailthru.com/
-Description: Add the power of Sailthru to your WordPress set up.
-Version: 3.2.0
-Author: Sailthru
-Author URI: http://sailthru.com
-Author Email: integrations@sailthru.com
-License:
-
-Copyright 2013 (Sailthru)
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License, version 2, as
-published by the Free Software Foundation.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-**/
-
+ * @wordpress-plugin
+ * Plugin Name: Sailthru for WordPress (HTV)
+ * Plugin URI: http://sailthru.com/
+ * Description: Add the power of Sailthru to your WordPress set up.
+ * Version: 3.3.0
+ * Author: Sailthru
+ * Author URI: http://sailthru.com
+ * Author Email: integrations@sailthru.com
+ * License:
+ *
+ * Copyright 2013 (Sailthru)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ **/
 
 
 /**
  * The current version of the plugin.
  *
  * @since 3.0.6
- * @var   const    $version    The current version of the plugin.
+ * @var   string $version The current version of the plugin.
  */
 if ( ! defined( 'SAILTHRU_PLUGIN_VERSION' ) ) {
-	define( 'SAILTHRU_PLUGIN_VERSION', '3.2.0' );
+	define( 'SAILTHRU_PLUGIN_VERSION', '3.3.0' );
 }
 
 if ( ! defined( 'SAILTHRU_PLUGIN_PATH' ) ) {
@@ -106,15 +105,13 @@ if ( class_exists( 'Sailthru_Horizon' ) ) {
 }
 
 
-
 /**
  * Register hooks that are fired when the plugin is activated,
  * deactivated, and uninstalled, respectively.
  */
-register_activation_hook( __FILE__, array( 'Sailthru_Horizon', 'activate' ) );
-register_deactivation_hook( __FILE__, array( 'Sailthru_Horizon', 'deactivate' ) );
-register_uninstall_hook( __FILE__, array( 'Sailthru_Horizon', 'uninstall' ) );
-
+register_activation_hook( __FILE__, [ 'Sailthru_Horizon', 'activate' ] );
+register_deactivation_hook( __FILE__, [ 'Sailthru_Horizon', 'deactivate' ] );
+register_uninstall_hook( __FILE__, [ 'Sailthru_Horizon', 'uninstall' ] );
 
 
 // This is called from sailthru_setup_handler()
@@ -161,11 +158,11 @@ function sailthru_create_wordpress_template() {
 				if ( $client ) {
 					$client->saveTemplate(
 						'wordpress-template',
-						array(
+						[
 							'name'         => $wordpress_template,
 							'subject'      => '{subject}',
 							'content_html' => "<html>\n<head>\n<body>\n{body}\n</body>\n</html>",
-						)
+						]
 					);
 				}
 			} catch ( Sailthru_Client_Exception $e ) {
@@ -191,23 +188,23 @@ function sailthru_user_login( $user_login, $user ) {
 		$client = new WP_Sailthru_Client( $api_key, $api_secret );
 
 		$id      = $user->user_email;
-		$options = array(
-			'login'  => array(
+		$options = [
+			'login'  => [
 				'user_agent' => sanitize_text_field( $_SERVER['HTTP_USER_AGENT'] ),
 				'key'        => 'email',
 				'ip'         => sanitize_text_field( $_SERVER['SERVER_ADDR'] ),
-				'site'       => sanitize_text_field ($_SERVER['HTTP_HOST'] ) ,
-			),
-			'fields' => array( 'keys' => 1 ),
-		);
+				'site'       => sanitize_text_field( $_SERVER['HTTP_HOST'] ),
+			],
+			'fields' => [ 'keys' => 1 ],
+		];
 
 		try {
 			if ( $client ) {
 				$st = $client->saveUser( $id, $options );
 			}
 		} catch ( Sailthru_Client_Exception $e ) {
-			 //silently fail.
-			 return;
+			//silently fail.
+			return;
 		}
 	}
 }
@@ -223,7 +220,6 @@ function sailthru_user_login( $user_login, $user ) {
 function sailthru_save_post( $post_id, $post, $post_before ) {
 
 	// Check to see if Content API is disabled
-
 	if ( false === apply_filters( 'sailthru_content_api_enable', true ) ) {
 		return;
 	}
@@ -237,19 +233,20 @@ function sailthru_save_post( $post_id, $post, $post_before ) {
 			$client     = new WP_Sailthru_Client( $api_key, $api_secret );
 			try {
 				if ( $client ) {
-					$data = array();
+					$site_metadata = get_option( 'vl_metadata' );
+
+					$data = [];
 					// Prepare the Content API Params
 					$data['url']               = get_permalink( $post->ID );
 					$data['title']             = $post->post_title;
 					$data['author']            = get_the_author_meta( 'display_name', $post->post_author );
 					$data['date']              = $post->post_date;
 					$data['vars']['post_type'] = $post->post_type;
+					$data['vars']['postID']    = $post->ID;
+					$data['vars']['siteID']    = $site_metadata['site_id'];
 					$data['spider']            = 1;
-					if ( ! empty( $post->post_excerpt ) ) {
-						$data['description'] = $post->post_excerpt;
-					} else {
-						$data['description'] = $post->post_content;
-					}
+					$data['description']       = ! empty( $post->post_excerpt ) ? $post->post_excerpt : $post->post_content;
+
 					// image & thumbnail
 					if ( has_post_thumbnail( $post->ID ) ) {
 						$image                          = wp_get_attachment_image_src( get_post_thumbnail_id( $post->ID ), 'full' );
@@ -259,25 +256,16 @@ function sailthru_save_post( $post_id, $post, $post_before ) {
 						$post_thumbnail                 = $thumb[0];
 						$data['images']['thumb']['url'] = $post_thumbnail;
 					}
-					$post_tags = get_post_meta( $post->ID, 'sailthru_meta_tags', true );
-					// WordPress tags.
-					if ( empty( $post_tags ) ) {
-						$post_tags = get_the_tags();
-						if ( $post_tags ) {
-							$post_tags = esc_attr( implode( ', ', wp_list_pluck( $post_tags, 'name' ) ) );
-						}
-					}
-					// WordPress categories.
-					if ( empty( $post_tags ) ) {
-						$post_categories = get_the_category( $post->ID );
-						foreach ( $post_categories as $post_category ) {
-							$post_tags .= $post_category->name . ', ';
-						}
-						$post_tags = substr( $post_tags, 0, -2 );
-					}
-					if ( ! empty( $post_tags ) ) {
-						$data['tags'] = $post_tags;
-					}
+
+					// Use categories as tags
+					$post_categories = get_the_category( $post->ID );
+					$post_tags = wp_list_pluck( $post_categories, 'name' );
+
+					// Add site id to the tags
+					$post_tags[] = $data['vars']['siteID'];
+
+					$data['tags'] = join( ', ', $post_tags );
+
 					$post_expiration = get_post_meta( $post->ID, 'sailthru_post_expiration', true );
 					if ( ! empty( $post_expiration ) ) {
 						$data['expire_date'] = esc_attr( $post_expiration );
@@ -289,7 +277,7 @@ function sailthru_save_post( $post_id, $post, $post_before ) {
 					// get all the custom fields and add them to the vars
 					$custom_fields = get_post_custom( $post_id );
 					// exclude  tags
-					$exclude_fields = array( '_edit_lock', '_edit_last', '_encloseme', ' sailthru_meta_tags', 'sailthru_post_expiration' );
+					$exclude_fields = [ '_edit_lock', '_edit_last', '_encloseme', ' sailthru_meta_tags', 'sailthru_post_expiration' ];
 
 					foreach ( $custom_fields as $key => $val ) {
 
@@ -313,6 +301,7 @@ function sailthru_save_post( $post_id, $post, $post_before ) {
 		}
 	}
 }
+
 add_action( 'save_post', 'sailthru_save_post', 10, 3 );
 
 if ( ! function_exists( 'write_log' ) ) {
