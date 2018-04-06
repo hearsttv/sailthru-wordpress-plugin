@@ -582,7 +582,6 @@ class Sailthru_Horizon {
 	public function post_metabox_display( $post ) {
 
 		$sailthru_post_expiration = get_post_meta( $post->ID, 'sailthru_post_expiration', true );
-		$sailthru_meta_tags       = get_post_meta( $post->ID, 'sailthru_meta_tags', true );
 
 		wp_nonce_field( plugin_basename( __FILE__ ), $this->nonce );
 
@@ -592,16 +591,6 @@ class Sailthru_Horizon {
 		echo  '<p class="description">';
 		echo  'Flash sales, events and some news stories should not be recommended after a certain date and time. Use this Sailthru-specific meta tag to prevent Horizon from suggesting the content at the given point in time. <a href="http://docs.sailthru.com/documentation/products/horizon-data-collection/horizon-meta-tags" target="_blank">More information can be found here</a>.';
 		echo  '</p><!-- /.description -->';
-
-		// post meta tags
-		echo  '<p>&nbsp;</p>';
-		echo  '<p><strong>Sailthru Meta Tags</strong></p>';
-		echo  '<input id="sailthru_meta_tags" type="text" name="sailthru_meta_tags" value="' . esc_attr( $sailthru_meta_tags ) . '" size="25"  />';
-		echo  '<p class="description">';
-		echo  'Tags are used to measure user interests and later to send them content customized to their tastes.';
-		echo  '</p><!-- /.description -->';
-		echo  '<p class="howto">Separate tags with commas</p>';
-
 	} // end post_media
 
 	/**
@@ -630,16 +619,6 @@ class Sailthru_Horizon {
 					update_post_meta( $post_id, 'sailthru_post_expiration', null );
 				}
 			} // end if
-
-			// Did the user set some meta tags, or are they clearing out old tags?
-			if ( ! empty( $_POST['sailthru_meta_tags'] ) && isset( $_POST['sailthru_meta_tags'] )
-				|| get_post_meta( $post_id, 'sailthru_meta_tags', true ) ) {
-
-				//remove trailing comma
-				$meta_tags = rtrim( sanitize_text_field( $_POST['sailthru_meta_tags'] ), ',' );
-				update_post_meta( $post_id, 'sailthru_meta_tags', esc_attr( $meta_tags ) );
-
-			}
 		} // end if
 
 	} // end save_custom_meta_data

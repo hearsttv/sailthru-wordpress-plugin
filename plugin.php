@@ -277,7 +277,7 @@ function sailthru_save_post( $post_id, $post, $post_before ) {
 					// get all the custom fields and add them to the vars
 					$custom_fields = get_post_custom( $post_id );
 					// exclude  tags
-					$exclude_fields = [ '_edit_lock', '_edit_last', '_encloseme', ' sailthru_meta_tags', 'sailthru_post_expiration' ];
+					$exclude_fields = [ '_edit_lock', '_edit_last', '_encloseme', 'sailthru_post_expiration' ];
 
 					foreach ( $custom_fields as $key => $val ) {
 
