@@ -492,9 +492,7 @@ class Sailthru_Horizon {
 
 		// tags
 		$post_categories = get_the_category( $post_object->ID );
-		$post_tags = array_map( function( $category ) {
-			return $category->name;
-		}, $post_categories );
+		$post_tags = wp_list_pluck( $post_categories, 'name' );
 
 		// add site id to tags
 		$site_metadata = get_option( 'vl_metadata' );

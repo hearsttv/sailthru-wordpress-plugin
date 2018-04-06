@@ -259,10 +259,7 @@ function sailthru_save_post( $post_id, $post, $post_before ) {
 
 					// Use categories as tags
 					$post_categories = get_the_category( $post->ID );
-
-					$post_tags = array_map( function ( $category ) {
-						return $category->name;
-					}, $post_categories );
+					$post_tags = wp_list_pluck( $post_categories, 'name' );
 
 					// Add site id to the tags
 					$post_tags[] = $data['vars']['siteID'];
