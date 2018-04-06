@@ -243,7 +243,7 @@ function sailthru_save_post( $post_id, $post, $post_before ) {
 					$data['date']              = $post->post_date;
 					$data['vars']['post_type'] = $post->post_type;
 					$data['vars']['postID']    = $post->ID;
-					$data['vars']['siteID']    = $site_metadata['id']; // TBD: site id field
+					$data['vars']['siteID']    = $site_metadata['site_id'];
 					$data['spider']            = 1;
 					$data['description']       = ! empty( $post->post_excerpt ) ? $post->post_excerpt : $post->post_content;
 
